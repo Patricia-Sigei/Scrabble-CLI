@@ -13,19 +13,15 @@ def append_special_tiles(board):
     for tile_type, positions in SPECIAL_TILES.items():
         for row, col in positions:
             board[row][col] = tile_type
-<<<<<<< HEAD
          
     print("\nDebug: Special tiles added to the board.")  # Debugging line  
     return board
-=======
->>>>>>> abbb84b64399eff6596b1d33bf3af26f4c72d961
 
 def print_board(board):
     """Prints the board in a readable format."""
     print("    " + " "+"   ".join(f"{i:2}" for i in range(15)))
     print("   " + "-" * 76)
     for i, row in enumerate(board):
-<<<<<<< HEAD
         print(f"{i:2} | " + " | ".join(f"{cell:2}" if len(cell) == 1 else f"{cell}" for cell in row) + " |")
         print("   " + "-" * 76)
 
@@ -85,12 +81,3 @@ if __name__ == "__main__":
         print("Invalid move")
     
     print_board(board)
-=======
-        print(f"{i:2} | " + " | ".join(f"{cell:2}" for cell in row) + " |")
-        print("   " + "-" * 76)
-
-if __name__ == "__main__":
-    board = create_board()
-    append_special_tiles(board)
-    print_board(board)
->>>>>>> abbb84b64399eff6596b1d33bf3af26f4c72d961
