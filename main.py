@@ -16,17 +16,19 @@ def download_wordlist(url, filename="wordlist.txt"):
         print(f"Error downloading wordlist: {e}")
 
 
-def is_valid_word(word, wordlist_file="wordlist.txt"):
-    """Checks if a word is valid using the downloaded wordlist."""
+def is_valid_word(word, wordlist_file="wordlist.txt", two_letter_file="two_letters.txt"):
+    """Checks if a word is valid using the downloaded wordlist and a two-letter word list."""
     try:
         with open(wordlist_file) as f:
             valid_words = set(line.strip().upper() for line in f)
-        return word in valid_words
-    except FileNotFoundError:
-        print("Error: Wordlist file not found. Please download it first.")
+        with open(two_letter_file) as f:
+            valid_two_letter_words = set(line.strip().upper() for line in f)
+        return word in valid_words or word in valid_two_letter_words
+    except FileNotFoundError as e:
+        print(f"Error: {e.filename} file not found. Please download it first.")
         return False
     except Exception as e:
-        print(f"Error reading wordlist file: {e}")
+        print(f"Error reading wordlist files: {e}")
         return False
 
 
@@ -63,50 +65,64 @@ def main():
         # --- Player's Turn ---
         print("\nYour turn!")
         print(f"Your rack: {' '.join(player_rack)}")
-        word = input("Enter a word to place (or 'q' to quit, 'pass' to skip turn): ").upper()
+        word = input("Enter a word to place (or 'q' to quit, 's' to skip turn): ").upper()
 
         if word == "Q":
             print("Game over!")
+            if player_score > computer_score:
+                print(f"You win! Your score: {player_score}, Computer's score: {computer_score}")
+            elif player_score < computer_score:
+                print(f"Computer wins! Your score: {player_score}, Computer's score: {computer_score}")
             break
 
-        if word == "PASS":
+        if word == "S":
             print("You passed your turn.")
         else:
             if not is_valid_word(word):
                 print(f"'{word}' is not a valid word. Try again.")
                 continue
 
-            if not all(player_rack.count(letter) >= word.count(letter) for letter in word):
-                print("You don't have the tiles to form this word. Try again.")
-                continue
+            # if not all(player_rack.count(letter) >= word.count(letter) for letter in word):
+            #     print("You don't have the tiles to form this word. Try again.")
+            #     continue
 
-            try:
-                start_row = int(input("Enter start row (0-14): "))
-                start_col = int(input("Enter start column (0-14): "))
-                direction = input("Enter direction ('H' for horizontal, 'V' for vertical): ").upper()
-                if direction not in ("H", "V"):
-                    raise ValueError("Invalid direction!")
-            except ValueError as e:
-                print(f"Invalid input: {e}")
-                continue
-
-            if is_valid_move(board, word, start_row, start_col, direction):
-                place_word(board, word, start_row, start_col, direction)
-                print("\nUpdated Board After Your Turn:")
-                print_board(board)
-
-                # Calculate and update player score
-                word_score = calculate_score(word)
-                player_score += word_score
-                print(f"You scored {word_score} points! Total: {player_score} points.")
-
-                # Update player's rack
-                for letter in word:
-                    player_rack.remove(letter)
-                player_rack = replenish_rack(player_rack)
+            # Check if the word can be formed with the tiles in the rack or letters already on the board
+            temp_rack = player_rack[:]
+            for letter in word:
+                if letter in temp_rack:
+                    temp_rack.remove(letter)
+                elif not any(letter in row for row in board):
+                    print(f"You don't have the tiles to form this word and it's not on the board. Try again.")
+                    break
             else:
-                print("Invalid move! Try again.")
-                continue
+                try:
+                    start_row = int(input("Enter start row (0-14): "))
+                    start_col = int(input("Enter start column (0-14): "))
+                    direction = input("Enter direction ('H' for horizontal, 'V' for vertical): ").upper()
+                    if direction not in ("H", "V"):
+                        raise ValueError("Invalid direction!")
+                except ValueError as e:
+                    print(f"Invalid input: {e}")
+                    continue
+
+                if is_valid_move(board, word, start_row, start_col, direction):
+                    place_word(board, word, start_row, start_col, direction)
+                    print("\nUpdated Board After Your Turn:")
+                    print_board(board)
+
+                    # Calculate and update player score
+                    word_score = calculate_score(word)
+                    player_score += word_score
+                    print(f"You scored {word_score} points! Total: {player_score} points.")
+
+                    # Update player's rack, skipping letters that were on the board
+                    for letter in word:
+                        if letter in player_rack:
+                            player_rack.remove(letter)
+                    player_rack = replenish_rack(player_rack)
+                else:
+                    print("Invalid move! Try again.")
+                    continue
 
         # --- Computer's Turn ---
         print("\nComputer's turn!")
