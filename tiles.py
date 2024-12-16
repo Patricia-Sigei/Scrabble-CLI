@@ -1,4 +1,3 @@
-# tiles.py
 import random
 
 TILE_BAG = {
