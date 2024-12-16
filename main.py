@@ -65,6 +65,8 @@ def main():
     current_player = random.choice(["player", "computer"])
     print(f"{current_player.capitalize()} starts!")
 
+    first_move = True
+
     while True:
         if current_player == "player":
             # --- Player's Turn ---
@@ -105,6 +107,16 @@ def main():
                         print(f"Invalid input: {e}")
                         continue
 
+                    if first_move:
+                        if direction == "H":
+                            if not (start_row == 7 and start_col <= 7 and start_col + len(word) > 7):
+                                print("The first word must cover the center tile (7,7). Try again.")
+                                continue
+                        elif direction == "V":
+                            if not (start_col == 7 and start_row <= 7 and start_row + len(word) > 7):
+                                print("The first word must cover the center tile (7,7). Try again.")
+                                continue
+
                     if is_valid_move(board, word, start_row, start_col, direction):
                         place_word(board, word, start_row, start_col, direction)
                         print("\nUpdated Board After Your Turn:")
@@ -120,6 +132,7 @@ def main():
                             if letter in player_rack:
                                 player_rack.remove(letter)
                         player_rack = replenish_rack(player_rack)
+                        first_move = False
                     else:
                         print("Invalid move! Try again.")
                         continue
@@ -137,6 +150,14 @@ def main():
                 for _ in range(50):  # Attempt up to 50 random positions and directions
                     start_row, start_col = random.randint(0, 14), random.randint(0, 14)
                     direction = random.choice(["H", "V"])
+                    if first_move:
+                        start_row, start_col = 7, 7
+                        direction = random.choice(["H", "V"])
+                        if direction == "H":
+                            start_col = random.randint(0, 7)
+                        else:
+                            start_row = random.randint(0, 7)
+
                     if is_valid_move(board, computer_word, start_row, start_col, direction):
                         place_word(board, computer_word, start_row, start_col, direction)
                         print(f"Computer placed '{computer_word}' at ({start_row}, {start_col}) going {direction}.")
@@ -152,6 +173,7 @@ def main():
                         for letter in computer_word:
                             computer_rack.remove(letter)
                         computer_rack = replenish_rack(computer_rack)
+                        first_move = False
                         break
                 else:
                     print("Computer couldn't place a word.")
