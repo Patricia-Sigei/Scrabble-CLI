@@ -1,52 +1,74 @@
-# game.py
-from board import create_board, print_board
-from tiles import TILE_BAG, draw_tiles
+import random
 from player import Player
+from board import create_board, append_special_tiles
+from tiles import draw_tiles, TILE_BAG  # Import TILE_BAG from tiles.py
+from computerlogic import computer_turn, is_valid_word  # Import the computer logic and word validation function
 
-def play_game():
-    """Main game loop."""
-    # Initialize board and players
+def display_board(board):
+    """Prints the board in a readable format."""
+    print("    " + "  ".join(f"{i:2}" for i in range(15)))
+    print("   " + "-" * 76)
+    for i, row in enumerate(board):
+        print(f"{i:2} | " + " | ".join(f"{cell:2}" if len(cell) == 1 else f"{cell}" for cell in row) + " |")
+        print("   " + "-" * 76)
+
+def display_rack(player):
+    """Displays the player's tile rack."""
+    print(f"{player.name}'s Rack: ", end="")
+    print(" ".join(player.rack))
+
+def human_turn(board, human_player):
+    """Prompts the human player to play a word."""
+    print(f"{human_player.name}'s turn:")
+    word = input("Enter a word to play: ").upper()
+    start_row = int(input("Enter the row to start the word: "))
+    start_col = int(input("Enter the column to start the word: "))
+    direction = input("Enter the direction (H for horizontal, V for vertical): ").upper()
+
+    if human_player.play_word(board, word, start_row, start_col, direction):
+        print(f"Successfully played '{word}' at ({start_row}, {start_col}) going {direction}.")
+    else:
+        print("Invalid move. Try again.")
+
+def main():
+    """Main function to run the game loop."""
+    # Create board and players
     board = create_board()
-    tile_bag = TILE_BAG.copy()
-    players = [Player("Human"), Player("Computer")]
+    board = append_special_tiles(board)
 
-    # Draw initial tiles for both players
-    for player in players:
-        player.rack = draw_tiles(tile_bag, 7)
+    human_player = Player("Human")
+    computer_player = Player("Computer")
 
-    current_player = 0
+    # Draw random tiles for both players' racks, ensure the tile bag is updated for both
+    human_player.rack = draw_tiles(TILE_BAG.copy(), num=7)  # Use copy of TILE_BAG for human
+    computer_player.rack = draw_tiles(TILE_BAG.copy(), num=7)  # Use copy of TILE_BAG for computer
 
-    while tile_bag or any(player.rack for player in players):
-        player = players[current_player]
-        print_board(board)
-        print(f"{player.name}'s turn. Rack: {player.rack}")
-        if player.name == "Human":
-            # Human turn
-            word = input("Enter a word: ").upper()
-            start_row = int(input("Enter start row (0-14): "))
-            start_col = int(input("Enter start column (0-14): "))
-            direction = input("Direction (H/V): ").upper()
-            if player.play_word(board, word, start_row, start_col, direction):
-                print(f"Word played: {word}")
-            else:
-                print("Invalid move.")
-        else:
-            # Computer turn (basic logic)
-            print("Computer is thinking...")
-            if player.rack:
-                word = player.rack[0]
-                player.play_word(board, word, 7, 7, "H")  # Example move
-                print(f"Computer played: {word}")
-            else:
-                print("Computer passed.")
+    # Show initial board state and human's rack
+    display_board(board)
+    display_rack(human_player)  # Display the human player's rack
 
-        # Replenish tiles
-        player.rack += draw_tiles(tile_bag, 7 - len(player.rack))
-        current_player = (current_player + 1) % 2
+    # Game loop
+    while True:
+        # Display the computer's rack before the computer's turn
+        display_rack(computer_player)
 
-    # Game Over
-    print("Game Over!")
-    for player in players:
-        print(f"{player.name} Score: {player.score}")
-    winner = max(players, key=lambda p: p.score)
-    print(f"{winner.name} wins!")
+        # Computer's turn using imported computer logic
+        computer_turn(board, computer_player)  # This will use the logic defined in computerlogic.py
+        display_board(board)
+
+        # Human's turn
+        human_turn(board, human_player)
+        display_board(board)
+
+        # Display the human player's updated rack after their turn
+        display_rack(human_player)
+
+        # Optional: Add some condition to break the loop, like a max number of turns or game over check
+        play_again = input("Do you want to continue playing? (y/n): ").lower()
+        if play_again != 'y':
+            print("Thanks for playing!")
+            break
+
+if __name__ == "__main__":
+    main()
+
