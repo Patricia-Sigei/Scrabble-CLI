@@ -110,4 +110,5 @@ YE
 YO 
 YU 
 ZA  
+ZE
 ZO
