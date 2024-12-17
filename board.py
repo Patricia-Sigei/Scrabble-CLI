@@ -14,7 +14,7 @@ def append_special_tiles(board):
         for row, col in positions:
             board[row][col] = tile_type
          
-    print("\nDebug: Special tiles added to the board.")  # Debugging line  
+    print("\nDebug: Special tiles added to the board.")  
     return board
 
 def print_board(board):
@@ -27,10 +27,6 @@ def print_board(board):
 
 
 def place_word(board, word, start_row, start_col, direction):
-    """
-    Places a word on the board.
-    direction: 'H' for horizontal, 'V' for vertical
-    """
     if direction == "H":
         for i, letter in enumerate(word):
             board[start_row][start_col + i] = letter
