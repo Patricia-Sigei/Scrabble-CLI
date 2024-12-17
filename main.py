@@ -1,8 +1,9 @@
 import requests
-from board import create_board, append_special_tiles, print_board, is_valid_move, is_connected
-from tiles import draw_tiles, TILE_BAG
+from board import create_board, append_special_tiles, print_board, is_valid_move, place_word, is_connected
+from tiles import draw_tiles, TILE_BAG, calculate_score
 import random
 from player import Player
+
 
 def download_wordlist(url, filename="wordlist.txt"):
     """Downloads a wordlist from the given URL and saves it to a file."""
@@ -14,6 +15,7 @@ def download_wordlist(url, filename="wordlist.txt"):
         print(f"Wordlist downloaded and saved as '{filename}'.")
     except Exception as e:
         print(f"Error downloading wordlist: {e}")
+
 
 def is_valid_word(word, wordlist_file="wordlist.txt", two_letter_file="two_letters.txt"):
     """Checks if a word is valid using the downloaded wordlist and a two-letter word list."""
@@ -30,6 +32,7 @@ def is_valid_word(word, wordlist_file="wordlist.txt", two_letter_file="two_lette
         print(f"Error reading wordlist files: {e}")
         return False
 
+
 def replenish_rack(rack):
     """Replenishes the player's or computer's rack to maintain seven tiles."""
     while len(rack) < 7 and TILE_BAG:
@@ -37,95 +40,27 @@ def replenish_rack(rack):
     return rack
 
 
-def player_turn(board, player, first_move):
-    """Handles the player's turn."""
-    print("\nYour turn!")
-    print(f"Your rack: {' '.join(player.rack)}")
-    word = input("Enter a word to place (or 'q' to quit, 's' to skip turn): ").upper()
+def generate_possible_words(rack, wordlist_file="wordlist.txt"):
+    """Generates all possible valid words from the current rack."""
+    possible_words = []
+    with open(wordlist_file) as f:
+        valid_words = set(line.strip().upper() for line in f)
 
-    if word == "Q":
-        return "quit"
+    # Generate possible words by trying all combinations of letters from the rack
+    for word in valid_words:
+        temp_rack = rack[:]
+        valid = True
+        for letter in word:
+            if letter in temp_rack:
+                temp_rack.remove(letter)
+            else:
+                valid = False
+                break
+        if valid:
+            possible_words.append(word)
 
-    if word == "S":
-        print("You passed your turn.")
-        return "skip"
+    return possible_words
 
-    if not is_valid_word(word):
-        print_board(board)
-        print(f"'{word}' is not a valid word. Try again.")
-        return "retry"
-
-    temp_rack = player.rack[:]
-    for letter in word:
-        if letter in temp_rack:
-            temp_rack.remove(letter)
-        elif not any(letter in row for row in board):
-            print_board(board)
-            print(f"You don't have the tiles to form this word and it's not on the board. Try again.")
-            return "retry"
-
-    try:
-        start_row = int(input("Enter start row (0-14): "))
-        start_col = int(input("Enter start column (0-14): "))
-        direction = input("Enter direction ('H' for horizontal, 'V' for vertical): ").upper()
-        if direction not in ("H", "V"):
-            raise ValueError("Invalid direction!")
-    except ValueError as e:
-        print(f"Invalid input: {e}")
-        return "retry"
-
-    if first_move:
-        if direction == "H" and not (start_row == 7 and start_col <= 7 and start_col + len(word) > 7):
-            print("The first word must cover the center tile (7,7). Try again.")
-            return "retry"
-        elif direction == "V" and not (start_col == 7 and start_row <= 7 and start_row + len(word) > 7):
-            print("The first word must cover the center tile (7,7). Try again.")
-            return "retry"
-
-    if is_valid_move(board, word, start_row, start_col, direction) and is_connected(board, start_row, start_col, word, direction):
-        player.play_word(board, word, start_row, start_col, direction)
-        print("\nUpdated Board After Your Turn:")
-        print_board(board)
-        player.rack = replenish_rack(player.rack)
-        return "success"
-    else:
-        print("The word must connect to an existing tile. Try again.")
-        return "retry"
-
-def computer_turn(board, computer, first_move):
-    """Handles the computer's turn."""
-    print("\nComputer's turn!")
-    computer_word = next(
-        (w for w in ["HELLO", "WORLD", "PYTHON", "SCRABBLE", "AI", "CODE", "ARM", "SIT"]
-         if all(computer.rack.count(l) >= w.count(l) for l in w)), None)
-
-    if computer_word:
-        for _ in range(50):  # Attempt up to 50 random positions and directions
-            start_row, start_col = random.randint(0, 14), random.randint(0, 14)
-            direction = random.choice(["H", "V"])
-            if first_move:
-                start_row, start_col = 7, 7
-                direction = random.choice(["H", "V"])
-                if direction == "H":
-                    start_col = random.randint(0, 7)
-                else:
-                    start_row = random.randint(0, 7)
-
-            if is_valid_move(board, computer_word, start_row, start_col, direction) and is_connected(board, start_row, start_col, computer_word, direction):
-                computer.play_word(board, computer_word, start_row, start_col, direction)
-                print(f"Computer placed '{computer_word}' at ({start_row}, {start_col}) going {direction}.")
-                print("\nUpdated Board After Computer's Turn:")
-                print_board(board)
-
-                # Update computer's rack
-                computer.rack = replenish_rack(computer.rack)
-                return False
-        else:
-            print("Computer couldn't place a word.")
-    else:
-        print("Computer passed its turn.")
-
-    return first_move
 
 def main():
     # Download the wordlist
@@ -136,19 +71,18 @@ def main():
     board = create_board()
     board = append_special_tiles(board)
 
-    # Initialize player and computer
-    player = Player("Player")
-    computer = Player("Computer")
+    # Initialize player and computer racks
+    player_rack = draw_tiles(TILE_BAG, 7)
+    computer_rack = draw_tiles(TILE_BAG, 7)
 
-    player.rack = draw_tiles(TILE_BAG, 7)
-    computer.rack = draw_tiles(TILE_BAG, 7)
+    player_score = 0
+    computer_score = 0
 
-    print("\nLet's play Scrabble!".capitalize())
+    print("\nInitial Board with Special Tiles:")
     print_board(board)
 
+    print(f"Your tiles: {' '.join(player_rack)}")
     print("The game begins!")
-
-    print(f"Your tiles: {' '.join(player.rack)}")
 
     # Randomize starting player
     current_player = random.choice(["player", "computer"])
@@ -158,30 +92,129 @@ def main():
 
     while True:
         if current_player == "player":
-            result = player_turn(board, player, first_move)
-            if result == "quit":
+            # --- Player's Turn ---
+            print("\nYour turn!")
+            print(f"Your rack: {' '.join(player_rack)}")
+            word = input("Enter a word to place (or 'q' to quit, 's' to skip turn): ").upper()
+
+            if word == "Q":
                 print("Game over!")
-                if player.score > computer.score:
-                    print(f"You win! Your score: {player.score}, Computer's score: {computer.score}")
-                elif player.score < computer.score:
-                    print(f"Computer wins! Your score: {player.score}, Computer's score: {computer.score}")
+                if player_score > computer_score:
+                    print(f"You win! Your score: {player_score}, Computer's score: {computer_score}")
+                elif player_score < computer_score:
+                    print(f"Computer wins! Your score: {player_score}, Computer's score: {computer_score}")
                 break
-            elif result == "skip":
-                current_player = "computer"
-            elif result == "retry":
-                continue
+
+            if word == "S":
+                print("You passed your turn.")
             else:
-                current_player = "computer"
-                first_move = False
+                if not is_valid_word(word):
+                    print(f"'{word}' is not a valid word. Try again.")
+                    continue
+
+                temp_rack = player_rack[:]
+                for letter in word:
+                    if letter in temp_rack:
+                        temp_rack.remove(letter)
+                    elif not any(letter in row for row in board):
+                        print(f"You don't have the tiles to form this word and it's not on the board. Try again.")
+                        break
+                else:
+                    try:
+                        start_row = int(input("Enter start row (0-14): "))
+                        start_col = int(input("Enter start column (0-14): "))
+                        direction = input("Enter direction ('H' for horizontal, 'V' for vertical): ").upper()
+                        if direction not in ("H", "V"):
+                            raise ValueError("Invalid direction!")
+                    except ValueError as e:
+                        print(f"Invalid input: {e}")
+                        continue
+
+                    if first_move:
+                        if direction == "H":
+                            if not (start_row == 7 and start_col <= 7 and start_col + len(word) > 7):
+                                print("The first word must cover the center tile (7,7). Try again.")
+                                continue
+                        elif direction == "V":
+                            if not (start_col == 7 and start_row <= 7 and start_row + len(word) > 7):
+                                print("The first word must cover the center tile (7,7). Try again.")
+                                continue
+
+                    if is_valid_move(board, word, start_row, start_col, direction) and is_connected(board, start_row, start_col, word, direction):
+                        place_word(board, word, start_row, start_col, direction)
+                        print("\nUpdated Board After Your Turn:")
+                        print_board(board)
+
+                        # Calculate and update player score
+                        word_score = calculate_score(word)
+                        player_score += word_score
+                        print(f"You scored {word_score} points! Total: {player_score} points.")
+
+                        # Update player's rack, skipping letters that were on the board
+                        for letter in word:
+                            if letter in player_rack:
+                                player_rack.remove(letter)
+                        player_rack = replenish_rack(player_rack)
+                        first_move = False
+                    else:
+                        print("Invalid move! Try again.")
+                        continue
+
+            current_player = "computer"
+
         else:
-            first_move = computer_turn(board, computer, first_move)
+            # --- Computer's Turn ---
+            print("\nComputer's turn!")
+
+            # Get all valid words the computer can form with its rack
+            computer_words = generate_possible_words(computer_rack)
+
+            if computer_words:
+                # Pick a word from the possible valid words
+                computer_word = random.choice(computer_words)
+
+                for _ in range(50):  # Attempt up to 50 random positions and directions
+                    start_row, start_col = random.randint(0, 14), random.randint(0, 14)
+                    direction = random.choice(["H", "V"])
+
+                    if first_move:
+                        start_row, start_col = 7, 7
+                        direction = random.choice(["H", "V"])
+                        if direction == "H":
+                            start_col = random.randint(0, 7)
+                        else:
+                            start_row = random.randint(0, 7)
+
+                    if is_valid_move(board, computer_word, start_row, start_col, direction) and is_connected(board, start_row, start_col, computer_word, direction):
+                        place_word(board, computer_word, start_row, start_col, direction)
+                        print(f"Computer placed '{computer_word}' at ({start_row}, {start_col}) going {direction}.")
+                        print("\nUpdated Board After Computer's Turn:")
+                        print_board(board)
+
+                        # Calculate and update computer score
+                        word_score = calculate_score(computer_word)
+                        computer_score += word_score
+                        print(f"Computer scored {word_score} points! Total: {computer_score} points.")
+
+                        # Update computer's rack
+                        for letter in computer_word:
+                            computer_rack.remove(letter)
+                        computer_rack = replenish_rack(computer_rack)
+                        first_move = False
+                        break
+                else:
+                    print("Computer couldn't place a word.")
+            else:
+                print("Computer passed its turn.")
+
             current_player = "player"
 
         # Endgame condition
-        if not TILE_BAG and not player.rack and not computer.rack:
+        if not TILE_BAG and not player_rack and not computer_rack:
             print("No more tiles. Game over!")
-            print(f"Final Scores - You: {player.score}, Computer: {computer.score}")
+            print(f"Final Scores - You: {player_score}, Computer: {computer_score}")
             break
+
 
 if __name__ == "__main__":
     main()

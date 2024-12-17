@@ -27,48 +27,46 @@ def print_board(board):
         print("   " + "-" * 76)
 
 def is_connected(board, start_row, start_col, word, direction):
-    """Checks if the word connects to existing tiles or is the first word covering the center tile."""
-    connected = False
+    """Ensures the word connects to existing tiles or is the first word on the center tile."""
+    connected = False  # Tracks if the word connects to any tile
+
+    def is_within_bounds(row, col):
+        return 0 <= row < 15 and 0 <= col < 15
+
+    def is_adjacent_to_tile(row, col):
+        return (
+            (row > 0 and board[row - 1][col] != ' ') or
+            (row < 14 and board[row + 1][col] != ' ') or
+            (col > 0 and board[row][col - 1] != ' ') or
+            (col < 14 and board[row][col + 1] != ' ')
+        )
+
     if direction == "H":
         for i in range(len(word)):
-            row = start_row
-            col = start_col + i
-            # Check if the current position overlaps with existing tiles
-            if board[row][col] != ' ':
-                connected = True
-            # Check if the current position is adjacent to an existing tile
-            if (
-                (row > 0 and board[row - 1][col] != ' ') or
-                (row < 14 and board[row + 1][col] != ' ') or
-                (col > 0 and board[row][col - 1] != ' ') or
-                (col < 14 and board[row][col + 1] != ' ')
-            ):
+            row, col = start_row, start_col + i
+            if not is_within_bounds(row, col) or (board[row][col] != ' ' and board[row][col] != word[i]):
+                return False
+            if is_adjacent_to_tile(row, col):
                 connected = True
 
     elif direction == "V":
         for i in range(len(word)):
-            row = start_row + i
-            col = start_col
-            # Check if the current position overlaps with existing tiles
-            if board[row][col] != ' ':
-                connected = True
-            # Check if the current position is adjacent to an existing tile
-            if (
-                (row > 0 and board[row - 1][col] != ' ') or
-                (row < 14 and board[row + 1][col] != ' ') or
-                (col > 0 and board[row][col - 1] != ' ') or
-                (col < 14 and board[row][col + 1] != ' ')
-            ):
+            row, col = start_row + i, start_col
+            if not is_within_bounds(row, col) or (board[row][col] != ' ' and board[row][col] != word[i]):
+                return False
+            if is_adjacent_to_tile(row, col):
                 connected = True
 
-    # Check if the word covers the center tile for the first word
-    if not connected and board[7][7] == '*':
+    # Ensure the first word covers the center tile (7,7)
+    if all(cell == ' ' for row in board for cell in row):  # Check if the board is empty
         if direction == "H" and start_row == 7 and start_col <= 7 < start_col + len(word):
-            connected = True
+            return True
         elif direction == "V" and start_col == 7 and start_row <= 7 < start_row + len(word):
-            connected = True
+            return True
 
     return connected
+
+
 
 def place_word(board, word, start_row, start_col, direction):
     if direction == "H":
@@ -79,22 +77,32 @@ def place_word(board, word, start_row, start_col, direction):
             board[start_row + i][start_col] = letter
 
 def is_valid_move(board, word, start_row, start_col, direction):
+    print(f"Checking move: word={word}, start=({start_row},{start_col}), direction={direction}")
+
     """
     Validates if the word can be placed on the board.
     Returns True if valid, False otherwise.
     """
+    print(f"Debug: Validating move for '{word}' at ({start_row}, {start_col}) going {direction}")
+    
     if direction == "H":
         if start_col + len(word) > 15:
+            print("Debug: Word goes out of horizontal bounds.")
             return False
         for i, letter in enumerate(word):
             current_cell = board[start_row][start_col + i]
+            # Allow placement on empty spaces or special tiles
             if current_cell not in (" ", "DL", "TL", "DW", "TW", "*", letter):  
+                print(f"Debug: Cell conflict at ({start_row}, {start_col + i}). Cell: '{current_cell}', Letter: '{letter}'")
                 return False
     elif direction == "V":
         if start_row + len(word) > 15:
+            print("Debug: Word goes out of vertical bounds.")
             return False
         for i, letter in enumerate(word):
             current_cell = board[start_row + i][start_col]
             if current_cell not in (" ", "DL", "TL", "DW", "TW", "*", letter):
+                print(f"Debug: Cell conflict at ({start_row + i}, {start_col}). Cell: '{current_cell}', Letter: '{letter}'")
                 return False
     return True
+
