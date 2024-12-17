@@ -16,6 +16,7 @@ def append_special_tiles(board):
         for row, col in positions:
             board[row][col] = tile_type
          
+    print("\nDebug: Special tiles added to the board.")  # Debugging line  
     return board
 
 def print_board(board):
