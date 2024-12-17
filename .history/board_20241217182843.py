@@ -33,6 +33,7 @@ def append_special_tiles(board):
     return board
 
 
+
 def print_board(board):
     """Prints the board in a readable format."""
     print("    " + " "+"   ".join(f"{i:2}" for i in range(15)))
