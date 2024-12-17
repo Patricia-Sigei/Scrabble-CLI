@@ -71,10 +71,6 @@ def is_connected(board, start_row, start_col, word, direction):
     return connected
 
 def place_word(board, word, start_row, start_col, direction):
-    """
-    Places a word on the board.
-    direction: 'H' for horizontal, 'V' for vertical
-    """
     if direction == "H":
         for i, letter in enumerate(word):
             board[start_row][start_col + i] = letter
