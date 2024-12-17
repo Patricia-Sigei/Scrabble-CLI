@@ -39,6 +39,28 @@ def replenish_rack(rack):
     return rack
 
 
+def generate_possible_words(rack, wordlist_file="wordlist.txt"):
+    """Generates all possible valid words from the current rack."""
+    possible_words = []
+    with open(wordlist_file) as f:
+        valid_words = set(line.strip().upper() for line in f)
+
+    # Generate possible words by trying all combinations of letters from the rack
+    for word in valid_words:
+        temp_rack = rack[:]
+        valid = True
+        for letter in word:
+            if letter in temp_rack:
+                temp_rack.remove(letter)
+            else:
+                valid = False
+                break
+        if valid:
+            possible_words.append(word)
+
+    return possible_words
+
+
 def main():
     # Download the wordlist
     wordlist_url = "https://github.com/jonbcard/scrabble-bot/raw/master/src/dictionary.txt"
@@ -142,14 +164,18 @@ def main():
         else:
             # --- Computer's Turn ---
             print("\nComputer's turn!")
-            computer_word = next(
-                (w for w in ["HELLO", "WORLD", "PYTHON", "SCRABBLE", "AI", "CODE", "ARM", "SIT"]
-                 if all(computer_rack.count(l) >= w.count(l) for l in w)), None)
 
-            if computer_word:
+            # Get all valid words the computer can form with its rack
+            computer_words = generate_possible_words(computer_rack)
+
+            if computer_words:
+                # Pick a word from the possible valid words
+                computer_word = random.choice(computer_words)
+
                 for _ in range(50):  # Attempt up to 50 random positions and directions
                     start_row, start_col = random.randint(0, 14), random.randint(0, 14)
                     direction = random.choice(["H", "V"])
+
                     if first_move:
                         start_row, start_col = 7, 7
                         direction = random.choice(["H", "V"])
