@@ -204,7 +204,7 @@ def main():
             first_move = computer_turn(current_player, board, wordlist, first_move)
         else:
             first_move = human_turn(current_player, board, wordlist, first_move)
-            if first_move:  # If the player chose to quit, exit the game
+            if first_move: 
                 break
 
         current_player_idx = (current_player_idx + 1) % len(players)
