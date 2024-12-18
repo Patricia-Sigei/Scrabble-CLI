@@ -1,6 +1,7 @@
 # Scrabble CLI
 
 This is a command-line interface (CLI) application for playing Scrabble.
+Phase 3 final project
 
 ## Setup
 
