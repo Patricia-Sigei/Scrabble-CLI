@@ -35,7 +35,7 @@ def replenish_rack(rack):
     return rack
 
 
-def human_turn(player, board, wordlist, first_move):
+def human_turn(player, board, wordlist, first_move, calculate_score):
     """Handles the human player's turn."""
     print(f"\n{player.name}'s turn. Your rack: {' '.join(player.rack)}")
     while True:
@@ -80,7 +80,7 @@ def human_turn(player, board, wordlist, first_move):
             print("Invalid input. Try again.")
 
 
-def computer_turn(player, board, wordlist, first_move):
+def computer_turn(player, board, wordlist, first_move, calculate_score):
     """Handles the computer player's turn."""
     print(f"\n{player.name}'s turn (Computer). Thinking...")
     possible_words = []
@@ -193,9 +193,9 @@ def main():
 
         # Check if the current player chose to quit
         if current_player.name == "Computer":
-            first_move = computer_turn(current_player, board, wordlist, first_move)
+            first_move = computer_turn(current_player, board, wordlist, first_move, calculate_score)
         else:
-            first_move = human_turn(current_player, board, wordlist, first_move)
+            first_move = human_turn(current_player, board, wordlist, first_move, calculate_score)
             if first_move:  # If the player chose to quit, exit the game
                 break
 
