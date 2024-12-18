@@ -20,9 +20,20 @@ def load_wordlist(filename="wordlist.txt"):
     with open(filename) as f:
         return set(word.strip().upper() for word in f)
 
-def is_valid_word(word, wordlist):
-    """Checks if a word is valid using the wordlist."""
-    return word in wordlist
+def is_valid_word(word, wordlist_file="wordlist.txt", two_letter_file="two_letters.txt"):
+    """Checks if a word is valid using the downloaded wordlist and a two-letter word list."""
+    try:
+        with open(wordlist_file) as f:
+            valid_words = set(line.strip().upper() for line in f)
+        with open(two_letter_file) as f:
+            valid_two_letter_words = set(line.strip().upper() for line in f)
+        return word in valid_words or word in valid_two_letter_words
+    except FileNotFoundError as e:
+        print(f"Error: {e.filename} file not found. Please download it first.")
+        return False
+    except Exception as e:
+        print(f"Error reading wordlist files: {e}")
+        return False
 
 def replenish_rack(rack):
     """Replenishes the player's or computer's rack to maintain seven tiles."""
@@ -102,7 +113,7 @@ def human_turn(player, board, wordlist, first_move, calculate_score):
             print("You chose to quit the game.")
             return True  # Return True to indicate the game should end
 
-        if not is_valid_word(word, wordlist):
+        if not is_valid_word(word, "wordlist.txt", "two_letters.txt"):
             print(f"'{word}' is not a valid word. Try again.")
             continue
 
