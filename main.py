@@ -111,7 +111,6 @@ def computer_turn(player, board, wordlist, first_move):
                             player.rack.remove(letter)
                         replenish_rack(player.rack)
 
-
                         return False  # First move is now done
     print("Computer couldn't place any word and passes.")
     return first_move
