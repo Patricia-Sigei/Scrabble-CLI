@@ -1,9 +1,0 @@
-# word_list.py
-
-WORD_LIST = [
-    "CAT", "DOG", "BIRD", "TREE", "HOUSE", "COMPUTER", "PYTHON", "PROGRAM",
-    "HELLO", "WORLD", "GAME", "SCORE", "RACK", "QUIZ", "JAZZ", "ZEBRA",
-    "QUIXOTIC", "EAGER", "BRAVE", "KNIGHT", "DWELL", "GREET", "SHOUT", "WRITE",
-    "TABLE", "CHAIR", "SKY", "SPACE", "STARS", "PLANET", "UNITY", "MIRROR",
-    "GOLD", "SILVER", "VALUE", "QUIRK", "VIVID", "POWER", "STRONG", "REACH",
-]
