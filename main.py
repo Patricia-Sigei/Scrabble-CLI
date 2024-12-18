@@ -39,8 +39,10 @@ def human_turn(player, board, wordlist, first_move):
     """Handles the human player's turn."""
     print(f"\n{player.name}'s turn. Your rack: {' '.join(player.rack)}")
     while True:
-        word = input("Enter a word to place (or 'pass' to skip, 'q' to quit): ").upper()
-        if word == "PASS":
+
+        word = input("Enter a word to place (or 's' to skip, 'q' to quit): ").upper()
+        if word == "S":
+
             print(f"{player.name} passed the turn.")
             return first_move
 
@@ -164,7 +166,6 @@ def main():
     print("1. Human vs Computer")
     print("2. Human vs Human")
     print("3. Two Humans vs Computer")
-
     while True:
         choice = input("Enter 1, 2, or 3: ")
         if choice in ["1", "2", "3"]:
