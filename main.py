@@ -105,7 +105,6 @@ def computer_turn(player, board, wordlist, first_move):
                         place_word(board, word, row, col, direction)
                         print(f"Computer placed '{word}' at ({row}, {col}) going {direction}.")
                         print_board(board)
-
                         # Update computer's rack and score
                         player.score += calculate_score(word)
                         for letter in word:
