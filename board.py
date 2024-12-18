@@ -55,7 +55,7 @@ def is_valid_move(board, word, start_row, start_col, direction):
     Validates if the word can be placed on the board.
     Returns True if valid, False otherwise.
     """
-    print(f"Debug: Validating move for '{word}' at ({start_row}, {start_col}) going {direction}")
+    # print(f"Debug: Validating move for '{word}' at ({start_row}, {start_col}) going {direction}")
     
     if direction == "H":
         if start_col + len(word) > 15:
@@ -65,7 +65,7 @@ def is_valid_move(board, word, start_row, start_col, direction):
             current_cell = board[start_row][start_col + i]
             # Allow placement on empty spaces or special tiles
             if current_cell not in (" ", "DL", "TL", "DW", "TW", "*", letter):  
-                print(f"Debug: Cell conflict at ({start_row}, {start_col + i}). Cell: '{current_cell}', Letter: '{letter}'")
+                # print(f"Debug: Cell conflict at ({start_row}, {start_col + i}). Cell: '{current_cell}', Letter: '{letter}'")
                 return False
     elif direction == "V":
         if start_row + len(word) > 15:
@@ -74,7 +74,7 @@ def is_valid_move(board, word, start_row, start_col, direction):
         for i, letter in enumerate(word):
             current_cell = board[start_row + i][start_col]
             if current_cell not in (" ", "DL", "TL", "DW", "TW", "*", letter):
-                print(f"Debug: Cell conflict at ({start_row + i}, {start_col}). Cell: '{current_cell}', Letter: '{letter}'")
+                # print(f"Debug: Cell conflict at ({start_row + i}, {start_col}). Cell: '{current_cell}', Letter: '{letter}'")
                 return False
     return True
 
