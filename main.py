@@ -39,8 +39,10 @@ def human_turn(player, board, wordlist, first_move):
     """Handles the human player's turn."""
     print(f"\n{player.name}'s turn. Your rack: {' '.join(player.rack)}")
     while True:
+
         word = input("Enter a word to place (or 's' to skip, 'q' to quit): ").upper()
         if word == "S":
+
             print(f"{player.name} passed the turn.")
             return first_move
 
@@ -105,13 +107,11 @@ def computer_turn(player, board, wordlist, first_move):
                         place_word(board, word, row, col, direction)
                         print(f"Computer placed '{word}' at ({row}, {col}) going {direction}.")
                         print_board(board)
-
                         # Update computer's rack and score
                         player.score += calculate_score(word)
                         for letter in word:
                             player.rack.remove(letter)
                         replenish_rack(player.rack)
-
 
                         return False  # First move is now done
     print("Computer couldn't place any word and passes.")
@@ -166,7 +166,6 @@ def main():
     print("1. Human vs Computer")
     print("2. Human vs Human")
     print("3. Two Humans vs Computer")
-
     while True:
         choice = input("Enter 1, 2, or 3: ")
         if choice in ["1", "2", "3"]:
