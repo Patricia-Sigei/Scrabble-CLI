@@ -1,23 +1,18 @@
-# player.py
-
 class Player:
     def __init__(self, name):
         self.name = name
-        self.rack = []
-        self.score = 0
+        self.tiles = []  # Player's current tiles
 
-    def play_word(self, board, word, start_row, start_col, direction):
+    def assign_blank_tile(self, target_letter):
         """
-        Plays a word on the board. Updates score and rack.
+        Replace a blank tile ('_') in the player's tiles with the specified letter.
         """
-        from board import place_word, is_valid_move
-        from tiles import calculate_score
+        if '_' in self.tiles:
+            self.tiles.remove('_')
+            self.tiles.append(target_letter.upper())  # Assign the blank tile
+            print(f"Blank tile successfully assigned as '{target_letter}'.")
+        else:
+            print("No blank tiles available to assign.")
 
-        if is_valid_move(board, word, start_row, start_col, direction):
-            place_word(board, word, start_row, start_col, direction)
-            self.score += calculate_score(word)
-            for letter in word.upper():
-                if letter in self.rack:
-                    self.rack.remove(letter)
-            return True
-        return False
+    def display_tiles(self):
+        print(f"{self.name}'s tiles: {', '.join(self.tiles)}")
