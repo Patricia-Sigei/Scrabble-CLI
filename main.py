@@ -4,7 +4,6 @@ from board import create_board, append_special_tiles, print_board, is_valid_move
 from tiles import draw_tiles, TILE_BAG, calculate_score
 from player import Player
 
-
 def download_wordlist(url, filename="wordlist.txt"):
     """Downloads a wordlist from the given URL and saves it to a file."""
     try:
@@ -16,17 +15,14 @@ def download_wordlist(url, filename="wordlist.txt"):
     except Exception as e:
         print(f"Error downloading wordlist: {e}")
 
-
 def load_wordlist(filename="wordlist.txt"):
     """Loads the wordlist from a file."""
     with open(filename) as f:
         return set(word.strip().upper() for word in f)
 
-
 def is_valid_word(word, wordlist):
     """Checks if a word is valid using the wordlist."""
     return word in wordlist
-
 
 def replenish_rack(rack):
     """Replenishes the player's or computer's rack to maintain seven tiles."""
@@ -34,6 +30,62 @@ def replenish_rack(rack):
         rack += draw_tiles(TILE_BAG, 1)
     return rack
 
+def is_adjacent_to_existing(board, start_row, start_col, direction, word_length):
+    """Checks if the word placement is adjacent to existing tiles on the board."""
+    row, col = start_row, start_col
+    for _ in range(word_length):
+        # Check adjacent cells for existing letters
+        if (
+            (row > 0 and board[row - 1][col] != '-') or
+            (row < 14 and board[row + 1][col] != '-') or
+            (col > 0 and board[row][col - 1] != '-') or
+            (col < 14 and board[row][col + 1] != '-')
+        ):
+            return True
+
+        if direction == 'H':
+            col += 1
+        elif direction == 'V':
+            row += 1
+
+    return False
+
+def is_first_move(board):
+    """Checks if the game is still on the first move (board center empty)."""
+    return board[7][7] == '-'
+
+def find_possible_moves(player, board, wordlist):
+    """Finds all valid moves for the computer, ensuring words attach to the board."""
+    moves = []
+
+    # Find all anchor points (existing tiles on the board)
+    for row in range(15):
+        for col in range(15):
+            if board[row][col] != '-':  # Tile exists here
+                for direction in ['H', 'V']:
+                    # Generate words using anchor tiles
+                    for word in generate_candidate_words(player.rack, board[row][col], wordlist):
+                        start_row, start_col = row, col
+                        if direction == 'H':
+                            start_col -= word.index(board[row][col])  # Adjust to fit anchor letter
+                        elif direction == 'V':
+                            start_row -= word.index(board[row][col])
+
+                        # Validate the move
+                        if is_valid_move(board, word, start_row, start_col, direction):
+                            moves.append((word, start_row, start_col, direction))
+
+    return moves
+
+def generate_candidate_words(rack, anchor_letter, wordlist):
+    """Generates all possible words using the rack and an anchor letter."""
+    possible_words = []
+    for word in wordlist:
+        if anchor_letter in word and all(
+            word.count(l) <= rack.count(l) + (1 if l == anchor_letter else 0) for l in word
+        ):
+            possible_words.append(word)
+    return possible_words
 
 def human_turn(player, board, wordlist, first_move):
     """Handles the human player's turn."""
@@ -73,81 +125,37 @@ def human_turn(player, board, wordlist, first_move):
                         player.rack.remove(letter)
                 replenish_rack(player.rack)
 
-                return False  # First move is now done
+                return False  
             else:
                 print("Invalid move. Try again.")
         except ValueError:
             print("Invalid input. Try again.")
 
-
 def computer_turn(player, board, wordlist, first_move):
     """Handles the computer player's turn."""
     print(f"\n{player.name}'s turn (Computer). Thinking...")
-    possible_words = []
+    print(f"Computer's rack: {' '.join(player.rack)}")
 
-    if first_move:
-        possible_words = [word for word in wordlist if all(word.count(l) <= player.rack.count(l) for l in word)]
-    else:
-        possible_words = find_possible_words_from_board(player, board, wordlist)
+    moves = find_possible_moves(player, board, wordlist)
 
-    if not possible_words:
+    if not moves:
         print("Computer cannot form a word and passes its turn.")
         return first_move
 
-    random.shuffle(possible_words)
-    for word in possible_words:
-        for row in range(15):
-            for col in range(15):
-                for direction in ['H', 'V']:
-                    if first_move and not (row == 7 and col == 7):
-                        continue
-                    if is_valid_move(board, word, row, col, direction):
-                        place_word(board, word, row, col, direction)
-                        print(f"Computer placed '{word}' at ({row}, {col}) going {direction}.")
-                        print_board(board)
-                        # Update computer's rack and score
-                        player.score += calculate_score(word)
-                        for letter in word:
-                            player.rack.remove(letter)
-                        replenish_rack(player.rack)
+    # Pick a random valid move
+    word, start_row, start_col, direction = random.choice(moves)
+    place_word(board, word, start_row, start_col, direction)
+    print(f"Computer placed '{word}' at ({start_row}, {start_col}) going {direction}.")
+    print_board(board)
 
-                        return False  # First move is now done
-    print("Computer couldn't place any word and passes.")
-    return first_move
+    # Update computer's rack and score
+    player.score += calculate_score(word)
+    for letter in word:
+        if letter in player.rack:
+            player.rack.remove(letter)
+    replenish_rack(player.rack)
 
-
-def find_possible_words_from_board(player, board, wordlist):
-    """Finds possible words the computer can build from the existing board."""
-    possible_words = []
-    
-    # Iterate over all possible word placements on the board (horizontally and vertically)
-    for row in range(15):
-        for col in range(15):
-            # Try to form possible words horizontally and vertically
-            for direction in ['H', 'V']:
-                word = ""
-                if direction == 'H':
-                    # Get horizontal word
-                    for c in range(col, 15):
-                        if board[row][c] != '-':
-                            word += board[row][c]
-                        else:
-                            break
-                elif direction == 'V':
-                    # Get vertical word
-                    for r in range(row, 15):
-                        if board[r][col] != '-':
-                            word += board[r][col]
-                        else:
-                            break
-                
-                # Check if the word can be formed using the player's rack
-                if word and all(word.count(l) <= player.rack.count(l) for l in word):
-                    if word in wordlist:
-                        possible_words.append(word)
-
-    return possible_words
-
+    return False  
 
 def main():
     # Step 1: Download wordlist
@@ -207,7 +215,6 @@ def main():
         print(f"{player.name}: {player.score} points")
     winner = max(players, key=lambda p: p.score)
     print(f"The winner is {winner.name} with {winner.score} points!")
-
 
 if __name__ == "__main__":
     main()
