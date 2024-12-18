@@ -54,6 +54,40 @@ def is_first_move(board):
     """Checks if the game is still on the first move (board center empty)."""
     return board[7][7] == '-'
 
+def validate_adjacent_words(board, word, start_row, start_col, direction, wordlist):
+    """Validates that all new adjacent words formed are valid."""
+    row, col = start_row, start_col
+    for i, letter in enumerate(word):
+        if board[row][col] == '-':  # Only validate for newly placed letters
+            adjacent_word = ""
+            if direction == "H":
+                # Check vertical word
+                r = row
+                while r > 0 and board[r - 1][col] != "-":
+                    r -= 1
+                while r < 15 and board[r][col] != "-":
+                    adjacent_word += board[r][col]
+                    r += 1
+            elif direction == "V":
+                # Check horizontal word
+                c = col
+                while c > 0 and board[row][c - 1] != "-":
+                    c -= 1
+                while c < 15 and board[row][c] != "-":
+                    adjacent_word += board[row][c]
+                    c += 1
+
+            if len(adjacent_word) > 1 and not is_valid_word(adjacent_word, wordlist):
+                return False
+
+        # Move to the next letter position
+        if direction == "H":
+            col += 1
+        elif direction == "V":
+            row += 1
+
+    return True
+
 def find_possible_moves(player, board, wordlist):
     """Finds all valid moves for the computer, ensuring words attach to the board."""
     moves = []
@@ -91,10 +125,8 @@ def human_turn(player, board, wordlist, first_move, calculate_score):
     """Handles the human player's turn."""
     print(f"\n{player.name}'s turn. Your rack: {' '.join(player.rack)}")
     while True:
-
         word = input("Enter a word to place (or 's' to skip, 'q' to quit): ").upper()
         if word == "S":
-
             print(f"{player.name} passed the turn.")
             return first_move
 
@@ -140,12 +172,18 @@ def computer_turn(player, board, wordlist, first_move, calculate_score):
 
     moves = find_possible_moves(player, board, wordlist)
 
-    if not moves:
-        print("Computer cannot form a word and passes its turn.")
+    # Filter moves to only include those that form valid adjacent words
+    valid_moves = []
+    for word, start_row, start_col, direction in moves:
+        if validate_adjacent_words(board, word, start_row, start_col, direction, wordlist):
+            valid_moves.append((word, start_row, start_col, direction))
+
+    if not valid_moves:
+        print("Computer cannot form a valid word and passes its turn.")
         return first_move
 
     # Pick a random valid move
-    word, start_row, start_col, direction = random.choice(moves)
+    word, start_row, start_col, direction = random.choice(valid_moves)
     place_word(board, word, start_row, start_col, direction)
     print(f"Computer placed '{word}' at ({start_row}, {start_col}) going {direction}.")
     print_board(board)
@@ -191,7 +229,7 @@ def main():
     for player in players:
         player.rack = draw_tiles(TILE_BAG, 7)
 
-    # Step 3: Randomize starting player
+        # Step 3: Randomize starting player
     current_player_idx = random.randint(0, len(players) - 1)
     first_move = True
 
