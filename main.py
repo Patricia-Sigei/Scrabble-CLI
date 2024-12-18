@@ -66,6 +66,14 @@ def main():
     wordlist_url = "https://github.com/jonbcard/scrabble-bot/raw/master/src/dictionary.txt"
     download_wordlist(wordlist_url)
 
+    try:
+        with open("wordlist.txt") as f:
+                valid_words = set(line.strip().upper() for line in f)
+    except FileNotFoundError:
+            print("Error: Wordlist file not found. Please ensure it's downloaded.")
+            return
+
+
     # Initialize the board and add special tiles
     board = create_board()
     board = append_special_tiles(board)
