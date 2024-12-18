@@ -22,11 +22,9 @@ def load_wordlist(filename="wordlist.txt"):
     with open(filename) as f:
         return set(word.strip().upper() for word in f)
 
-
 def is_valid_word(word, wordlist):
     """Checks if a word is valid using the wordlist."""
     return word in wordlist
-
 
 def replenish_rack(rack):
     """Replenishes the player's or computer's rack to maintain seven tiles."""
