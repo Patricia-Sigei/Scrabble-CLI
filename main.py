@@ -87,12 +87,14 @@ def generate_candidate_words(rack, anchor_letter, wordlist):
             possible_words.append(word)
     return possible_words
 
-def human_turn(player, board, wordlist, first_move):
+def human_turn(player, board, wordlist, first_move, calculate_score):
     """Handles the human player's turn."""
     print(f"\n{player.name}'s turn. Your rack: {' '.join(player.rack)}")
     while True:
-        word = input("Enter a word to place (or 'pass' to skip, 'q' to quit): ").upper()
-        if word == "PASS":
+
+        word = input("Enter a word to place (or 's' to skip, 'q' to quit): ").upper()
+        if word == "S":
+
             print(f"{player.name} passed the turn.")
             return first_move
 
@@ -131,7 +133,7 @@ def human_turn(player, board, wordlist, first_move):
         except ValueError:
             print("Invalid input. Try again.")
 
-def computer_turn(player, board, wordlist, first_move):
+def computer_turn(player, board, wordlist, first_move, calculate_score):
     """Handles the computer player's turn."""
     print(f"\n{player.name}'s turn (Computer). Thinking...")
     print(f"Computer's rack: {' '.join(player.rack)}")
@@ -172,7 +174,6 @@ def main():
     print("1. Human vs Computer")
     print("2. Human vs Human")
     print("3. Two Humans vs Computer")
-
     while True:
         choice = input("Enter 1, 2, or 3: ")
         if choice in ["1", "2", "3"]:
@@ -201,10 +202,10 @@ def main():
 
         # Check if the current player chose to quit
         if current_player.name == "Computer":
-            first_move = computer_turn(current_player, board, wordlist, first_move)
+            first_move = computer_turn(current_player, board, wordlist, first_move, calculate_score)
         else:
-            first_move = human_turn(current_player, board, wordlist, first_move)
-            if first_move: 
+            first_move = human_turn(current_player, board, wordlist, first_move, calculate_score)
+            if first_move:  # If the player chose to quit, exit the game
                 break
 
         current_player_idx = (current_player_idx + 1) % len(players)
