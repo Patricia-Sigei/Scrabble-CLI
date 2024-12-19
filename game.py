@@ -1,5 +1,5 @@
 import random
-import itertools  # For generating permutations
+import itertools  
 from board import create_board, print_board, is_valid_move, place_word
 from tiles import TILE_BAG, draw_tiles
 from player import Player
@@ -9,7 +9,7 @@ def load_wordlist():
     with open("wordlist.txt", "r") as file:
         return set(word.strip().upper() for word in file)
 
-WORDLIST = load_wordlist()  # Preload wordlist globally for validation
+WORDLIST = load_wordlist()  
 
 def play_game():
     """Main game loop."""
@@ -51,7 +51,7 @@ def play_game():
         if tile_bag:
             player.rack += draw_tiles(tile_bag, 7 - len(player.rack))
 
-        current_player = (current_player + 1) % 2  # Switch turns
+        current_player = (current_player + 1) % 2  
 
     # Game Over
     print("Game Over!")
@@ -83,10 +83,9 @@ def play_turn(player_tiles):
             print(f"You used a blank tile as '{chosen_letter}'")
         else:
             print("Invalid letter. Please enter a valid single letter.")
-            return play_turn(player_tiles)  # Restart turn if invalid input
+            return play_turn(player_tiles)  
 
     word = input("Enter the word to play: ").upper()
-    # Additional logic to handle word validation, scoring, etc.
     return word, player_tiles
 
 def computer_turn(board, computer_player):
@@ -102,8 +101,7 @@ def computer_turn(board, computer_player):
         return
     
     for word in possible_words:
-        if is_valid_word(word):  # Check if the word is valid
-            # Try all valid positions for the word on the board
+        if is_valid_word(word):  
             for row in range(15):
                 for col in range(15):
                     for direction in ['H', 'V']:
@@ -111,31 +109,28 @@ def computer_turn(board, computer_player):
                             place_word(board, word, row, col, direction)
                             computer_player.rack = update_rack(computer_player.rack, word)
                             print(f"Computer played '{word}' at ({row}, {col}) going {direction}.")
-                            return  # End after playing one valid word
+                            return  
     print("Computer could not play a word this turn.")
 
 def generate_possible_words(rack):
     """Generates possible valid words from the player's rack using permutations."""
     possible_words = set()
-    for i in range(2, 8):  # Length of words from 2 to 7
+    for i in range(2, 8):  
         for combo in itertools.permutations(rack, i):
             word = ''.join(combo).upper()
-            if word in WORDLIST:  # Only add valid words from the wordlist
+            if word in WORDLIST:  
                 possible_words.add(word)
     return list(possible_words)
 
 def is_valid_word(word):
-    """Checks if a word is valid by comparing it against the wordlist."""
-    return word in WORDLIST  # Check if the word exists in the pre-loaded wordlist
+    return word in WORDLIST 
 
 def swap_tiles(rack):
-    """Simulates the computer swapping tiles."""
     print("Swapping tiles...")
     global TILE_BAG
-    # Swap a certain number of tiles
     for _ in range(min(7, len(rack))):
-        TILE_BAG.append(rack.pop())  # Add tile back to the bag
-    rack += draw_tiles(TILE_BAG, 7 - len(rack))  # Replenish the rack with new tiles
+        TILE_BAG.append(rack.pop())  
+    rack += draw_tiles(TILE_BAG, 7 - len(rack))  
 
 def play_turn(player_tiles):
     print(f"Your current tiles: {player_tiles}")

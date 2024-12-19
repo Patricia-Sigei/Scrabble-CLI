@@ -29,7 +29,7 @@ def append_special_tiles(board):
     
     # Center star tile
     board[7][7] = "*"
-    print("\nDebug: Special tiles added to the board.")  # Debugging line  
+    print("\nDebug: Special tiles added to the board.")    
     return board
 
 
