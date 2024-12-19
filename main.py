@@ -69,7 +69,7 @@ def validate_adjacent_words(board, word, start_row, start_col, direction, wordli
     """Validates that all new adjacent words formed are valid."""
     row, col = start_row, start_col
     for i, letter in enumerate(word):
-        if board[row][col] == '-':  # Only validate for newly placed letters
+        if board[row][col] == '-': 
             adjacent_word = ""
             if direction == "H":
                 # Check vertical word
@@ -112,7 +112,7 @@ def find_possible_moves(player, board, wordlist):
                     for word in generate_candidate_words(player.rack, board[row][col], wordlist):
                         start_row, start_col = row, col
                         if direction == 'H':
-                            start_col -= word.index(board[row][col])  # Adjust to fit anchor letter
+                            start_col -= word.index(board[row][col]) 
                         elif direction == 'V':
                             start_row -= word.index(board[row][col])
 
@@ -143,7 +143,7 @@ def human_turn(player, board, wordlist, first_move, calculate_score):
 
         if word == "Q":
             print("You chose to quit the game.")
-            return True  # Return True to indicate the game should end
+            return True  
 
         if not is_valid_word(word, "wordlist.txt", "two_letters.txt"):
             print(f"'{word}' is not a valid word. Try again.")
@@ -259,7 +259,7 @@ def main():
             first_move = computer_turn(current_player, board, wordlist, first_move, calculate_score)
         else:
             first_move = human_turn(current_player, board, wordlist, first_move, calculate_score)
-            if first_move:  # If the player chose to quit, exit the game
+            if first_move:  
                 break
 
         current_player_idx = (current_player_idx + 1) % len(players)
