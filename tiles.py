@@ -48,8 +48,3 @@ def calculate_score(word):
       score += letter_values[letter]
 
     return sum(LETTER_POINTS[letter] for letter in word.upper())
-
-# # Example usage
-# word = "HELLO"
-# score = scrabble_score(word)
-# print(f"The score of '{word}' is: {score}")
