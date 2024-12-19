@@ -165,6 +165,9 @@ def human_turn(player, board, wordlist, first_move, calculate_score):
 
                 # Update player's rack and score
                 player.score += calculate_score(word)
+                print(f"Placed '{word}' and scored {calculate_score(word)} points.")
+                print(f"Current {player.name} score: {player.score}")
+
                 for letter in word:
                     if letter in player.rack:
                         player.rack.remove(letter)
@@ -198,9 +201,11 @@ def computer_turn(player, board, wordlist, first_move, calculate_score):
     place_word(board, word, start_row, start_col, direction)
     print(f"Computer placed '{word}' at ({start_row}, {start_col}) going {direction}.")
     print_board(board)
-
+   
     # Update computer's rack and score
     player.score += calculate_score(word)
+    print(f"Placed '{word}' and scored {calculate_score(word)} points.")
+    print(f"Current {player.name} score: {player.score}")
     for letter in word:
         if letter in player.rack:
             player.rack.remove(letter)
