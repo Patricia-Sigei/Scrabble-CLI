@@ -67,6 +67,28 @@ def update_rack(player_rack, word):
             player_rack.remove(letter)
     return player_rack
 
+    # game.py (or similar file handling game logic)
+def play_turn(player_tiles):
+    print(f"Your current tiles: {player_tiles}")
+    
+    # Check if player has blank tiles
+    if '@' in player_tiles:
+        print("You have blank tiles available to use.")
+        blank_tile_index = player_tiles.index('@')
+        chosen_letter = input("Enter the letter you want the blank tile to represent: ").upper()
+
+        # Ensure the letter is valid
+        if len(chosen_letter) == 1 and chosen_letter.isalpha():
+            player_tiles[blank_tile_index] = chosen_letter
+            print(f"You used a blank tile as '{chosen_letter}'")
+        else:
+            print("Invalid letter. Please enter a valid single letter.")
+            return play_turn(player_tiles)  # Restart turn if invalid input
+
+    word = input("Enter the word to play: ").upper()
+    # Additional logic to handle word validation, scoring, etc.
+    return word, player_tiles
+
 def computer_turn(board, computer_player):
     """Determines and plays the computer's move."""
     print(f"{computer_player.name}'s turn:")
@@ -114,3 +136,21 @@ def swap_tiles(rack):
     for _ in range(min(7, len(rack))):
         TILE_BAG.append(rack.pop())  # Add tile back to the bag
     rack += draw_tiles(TILE_BAG, 7 - len(rack))  # Replenish the rack with new tiles
+
+def play_turn(player_tiles):
+    print(f"Your current tiles: {player_tiles}")
+    
+    if '@' in player_tiles:
+        print("You have blank tiles available to use.")
+        blank_tile_index = player_tiles.index('@')
+        chosen_letter = input("Enter the letter you want the blank tile to represent: ").upper()
+
+        if len(chosen_letter) == 1 and chosen_letter.isalpha():
+            player_tiles[blank_tile_index] = chosen_letter
+            print(f"You used a blank tile as '{chosen_letter}'")
+        else:
+            print("Invalid letter. Please enter a valid single letter.")
+            return play_turn(player_tiles)  
+
+    word = input("Enter the word to play: ").upper()
+    return word, player_tiles
